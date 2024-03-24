@@ -1,0 +1,50 @@
+version: '3'
+
+services:
+  prometheus:
+    image: prom/prometheus
+    container_name: prometheus
+    ports:
+      - "9090:9090"
+    networks:
+      - monitoring
+    volumes:
+      - ~/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+    restart: always
+
+  grafana:
+    image: grafana/grafana
+    container_name: grafana
+    ports:
+      - "3000:3000"
+    networks:
+      - monitoring
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=password
+    restart: always
+
+  debian12:
+    image: debian
+    container_name: debian12
+    networks:
+      - monitoring
+    volumes:
+      - ./start_node_exporter_debian.sh:/usr/local/bin/start_node_exporter_debian.sh
+    command: bash -c "/usr/local/bin/start_node_exporter_debian.sh && tail -f /dev/null"
+    ports:
+      - "9101:9100"
+
+  rockylinux9:
+    image: rockylinux:9
+    container_name: rockylinux
+    networks:
+      - monitoring
+    volumes:
+      - ./start_node_exporter_rockylinux.sh:/usr/local/bin/start_node_exporter_rockylinux.sh
+    command: bash -c "/usr/local/bin/start_node_exporter_rockylinux.sh && tail -f /dev/null"
+    ports:
+      - "9100:9100"
+
+networks:
+  monitoring:
+    driver: bridge
